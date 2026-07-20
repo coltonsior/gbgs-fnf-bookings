@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBGS Booking Board</title>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #021D41;
+    --lightsout: #0F2851;
+    --darkstripe: #24386D;
+    --toupee: #A7B5D6;
+    --offwhite: #F5F6FA;
+    --purple: #9728D1;
+    --coral: #F93A5A;
+    --yellow: #FFBD17;
+    --studioA: #F93A5A;
+    --studioB: #2424E9;
+    --studioC: #75E099;
+    --gradient: linear-gradient(100deg, var(--purple) 0%, var(--coral) 55%, var(--yellow) 100%);
+    --pink: #FFBDCA;
+    --blush: #FFBDCA;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--offwhite);
+    color: var(--navy);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .hero {
+    background: var(--navy);
+    background-image: linear-gradient(135deg, var(--navy) 60%, var(--lightsout) 100%);
+    padding: 28px 24px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.035) 0 12px, transparent 12px 24px);
+    pointer-events: none;
+  }
+  .wordmark {
+    font-weight: 900;
+    font-style: italic;
+    font-size: 30px;
+    letter-spacing: 0.5px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+  .tagline {
+    color: var(--toupee);
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .content {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  /* Landing / store picker */
+  .store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 22px;
+  }
+  .store-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 10px rgba(2,29,65,0.08);
+    transition: transform .12s ease, box-shadow .12s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .store-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: var(--gradient);
+  }
+  .store-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(2,29,65,0.15);
+    border-color: var(--purple);
+  }
+  .store-card h3 {
+    margin: 10px 0 4px;
+    font-size: 19px;
+    font-weight: 800;
+  }
+  .store-card p {
+    margin: 0;
+    color: var(--darkstripe);
+    font-size: 13px;
+  }
+  .section-title {
+    font-weight: 800;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--navy);
+    margin: 0 0 4px;
+  }
+  .section-sub {
+    color: var(--darkstripe);
+    font-size: 13px;
+    margin: 0 0 18px;
+  }
+  /* Schedule view */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-ghost {
+    background: #fff;
+    color: var(--navy);
+    border: 1.5px solid var(--toupee);
+  }
+  .btn-gradient {
+    background: var(--gradient);
+    color: #fff;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: #fff;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  input[type="date"] {
+    border: 1.5px solid var(--toupee);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    background: #fff;
+  }
+  table.grid {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+  .studio-head {
+    text-align: center;
+    padding: 10px 6px;
+    border-radius: 10px 10px 0 0;
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #fff;
+  }
+  .head-A { background: var(--studioA); }
+  .head-B { background: var(--studioB); }
+  .head-C { background: var(--studioC); color: var(--navy); }
+  td.slot {
+    background: #fff;
+    padding: 0;
+    vertical-align: top;
+  }
+  .slot-inner {
+    padding: 12px 10px;
+    border-radius: 0 0 10px 10px;
+    min-height: 74px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+  }
+  .slot-time {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--navy);
+  }
+  .slot-open .slot-inner {
+    border: 1.5px dashed var(--toupee);
+  }
+  .book-btn {
+    align-self: flex-start;
+    background: var(--gradient);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .slot-booked .slot-inner {
+    background: var(--offwhite);
+    border: 1.5px solid var(--navy);
+  }
+  .droptag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    width: fit-content;
+  }
+  .res-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .res-meta { font-size: 12px; color: var(--darkstripe); }
+  .cancel-link {
+    font-size: 11px;
+    color: var(--coral);
+    font-weight: 700;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    width: fit-content;
+  }
+  /* Modal */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2,29,65,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 380px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(2,29,65,0.3);
+  }
+  .modal-eyebrow {
+    display: inline-block;
+    background: var(--gradient);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .modal h2 {
+    margin: 0 0 16px;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .field input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--toupee);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .field input:focus { outline: 2px solid var(--purple); border-color: var(--purple); }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .modal-actions .btn { flex: 1; }
+  .error-msg {
+    color: var(--coral);
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: -8px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; }
+  .back-link {
+    background: none;
+    border: none;
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hidden { display: none !important; }
+  @media (max-width: 560px) {
+    table.grid, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { margin-bottom: 12px; }
+    .studio-head { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="wordmark">Great Big Game Show</p>
+  <p class="tagline">Team Booking Board</p>
+</div>
+
+<div class="content">
+
+  <!-- LANDING VIEW -->
+  <div id="view-landing">
+    <p class="section-title">Select a location</p>
+    <p class="section-sub">Choose the store you're booking game slots for.</p>
+    <div class="store-grid" id="store-grid"></div>
+  </div>
+
+  <!-- SCHEDULE VIEW -->
+  <div id="view-schedule" class="hidden">
+    <button class="back-link" onclick="goLanding()">&larr; Change store</button>
+    <p class="section-title" id="schedule-store-name" style="margin-top:10px;"></p>
+    <p class="section-sub">Tap an open slot to book contestants into a studio.</p>
+
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <input type="date" id="date-picker">
+      </div>
+      <div class="toolbar-left">
+        <button class="btn btn-ghost" onclick="setApiUrlPrompt()" id="sync-btn" title="Paste your Apps Script Web App URL to enable live syncing">⚙ Sync</button>
+        <span id="sync-status" style="font-size:12px;font-weight:700;color:var(--darkstripe);"></span>
+      </div>
+    </div>
+
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="studio-head head-A">Studio A</th>
+          <th class="studio-head head-B">Studio B</th>
+          <th class="studio-head head-C">Studio C</th>
+        </tr>
+      </thead>
+      <tbody id="schedule-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- SYNC SETTINGS MODAL -->
+<div class="overlay" id="sync-overlay">
+  <div class="modal">
+    <span class="modal-eyebrow">Sync settings</span>
+    <h2>Connect to Google Sheet</h2>
+    <div class="field">
+      <label for="sync-url-input">Apps Script Web App URL</label>
+      <input type="text" id="sync-url-input" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <p style="font-size:12px;color:var(--darkstripe);margin:-6px 0 0;">Leave blank and save to disable sync and use local storage only.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSyncModal()">Cancel</button>
+      <button class="btn btn-gradient" onclick="saveSyncUrl()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <span class="modal-eyebrow" id="modal-studio-label">Studio A</span>
+    <h2 id="modal-title">Book 12:30 PM slot</h2>
+    <div class="field">
+      <label for="res-name">Name for reservation</label>
+      <input type="text" id="res-name" placeholder="e.g. Johnson Family">
+    </div>
+    <div class="field">
+      <label for="res-contestants">Number of contestants</label>
+      <input type="number" id="res-contestants" min="1" max="20" placeholder="e.g. 6">
+    </div>
+    <p class="error-msg" id="modal-error">Please fill out both fields.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gradient" onclick="confirmBooking()">Confirm booking</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORES = ["West Valley", "Richmond", "Dania Beach"];
+
+  // Each row: time shown per studio column. Row index 2->3 has a break divider after it.
+  const SCHEDULE_ROWS = [
+    { A: "12:30 PM", B: "12:45 PM", C: "1:00 PM" },
+    { A: "2:00 PM",  B: "2:15 PM",  C: "2:30 PM" },
+    { A: "3:30 PM",  B: "3:45 PM",  C: "4:00 PM" },
+    { A: "5:00 PM",  B: "5:15 PM",  C: "5:30 PM" },
+    { A: "6:30 PM",  B: "6:45 PM",  C: "7:00 PM" },
+    { A: "8:00 PM",  B: "8:15 PM",  C: "8:30 PM" }
+  ];
+  let currentStore = null;
+  let currentDate = null;
+  let pendingSlot = null; // { studio, time }
+
+  function todayStr() {
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0, 10);
+  }
+
+  function storageKey(store, date) {
+    return `gbgs_bookings__${store}__${date}`;
+  }
+
+  function getApiUrl() {
+    return localStorage.getItem('gbgs_api_url') || '';
+  }
+
+  function setApiUrlPrompt() {
+    document.getElementById('sync-url-input').value = getApiUrl();
+    document.getElementById('sync-overlay').classList.add('open');
+  }
+
+  function closeSyncModal() {
+    document.getElementById('sync-overlay').classList.remove('open');
+  }
+
+  function saveSyncUrl() {
+    const url = document.getElementById('sync-url-input').value.trim();
+    localStorage.setItem('gbgs_api_url', url);
+    updateSyncStatus();
+    closeSyncModal();
+    showToast(url ? 'Live sync configured — checking connection...' : 'Sync disabled — using local storage only.');
+    if (currentStore) refreshAndRender();
+  }
+
+  // Parses an Apps Script response, giving a specific reason when it's not
+  // valid JSON (most commonly: the deployment isn't set to "Anyone" access
+  // and Google returned a login page instead of data).
+  async function parseAppsScriptResponse(res) {
+    const text = await res.text();
+    try {
+      return { ok: true, data: JSON.parse(text) };
+    } catch (e) {
+      if (text.includes('accounts.google.com') || text.includes('ServiceLogin')) {
+        return { ok: false, reason: 'Apps Script asked for a Google login — redeploy with "Who has access: Anyone".' };
+      }
+      if (text.includes('Script function not found')) {
+        return { ok: false, reason: 'doGet/doPost not found — make sure Code.gs was saved and redeployed as a new version.' };
+      }
+      return { ok: false, reason: `Unexpected response from Apps Script (not JSON): "${text.slice(0, 120)}"` };
+    }
+  }
+
+  async function refreshAndRender() {
+    const apiUrl = getApiUrl();
+    if (apiUrl) {
+      try {
+        const res = await fetch(`${apiUrl}?action=list&store=${encodeURIComponent(currentStore)}&date=${encodeURIComponent(currentDate)}`);
+        const parsed = await parseAppsScriptResponse(res);
+        if (!parsed.ok) {
+          console.error('Sync error:', parsed.reason);
+          showToast(`Sync error: ${parsed.reason}`);
+        } else {
+          const bookings = {};
+          parsed.data.forEach(b => {
+            bookings[slotId(b.studio, b.time)] = { name: b.name, contestants: b.contestants, bookedAt: b.bookedAt };
+          });
+          saveBookings(currentStore, currentDate, bookings);
+        }
+      } catch (err) {
+        console.error('Remote sync unreachable, using local cache', err);
+        showToast(`Could not reach Apps Script URL: ${err.message}`);
+      }
+    }
+    renderSchedule();
+  }
+
+  async function syncBooking(action, studio, time, extra) {
+    const apiUrl = getApiUrl();
+    if (!apiUrl) return true;
+    try {
+      const body = new URLSearchParams({ action, store: currentStore, date: currentDate, studio, time, ...extra });
+      const res = await fetch(apiUrl, { method: 'POST', body });
+      const parsed = await parseAppsScriptResponse(res);
+      if (!parsed.ok) {
+        console.error('Sync error:', parsed.reason);
+        showToast(`Not synced to Sheet: ${parsed.reason}`);
+        return false;
+      }
+      if (parsed.data && parsed.data.error) {
+        showToast(parsed.data.error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Sync failed', err);
+      showToast(`Saved locally only — could not reach Apps Script: ${err.message}`);
+      return true;
+    }
+  }
+
+  function loadBookings(store, date) {
+    try {
+      const raw = localStorage.getItem(storageKey(store, date));
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveBookings(store, date, bookings) {
+    localStorage.setItem(storageKey(store, date), JSON.stringify(bookings));
+  }
+
+  function slotId(studio, time) {
+    return `${studio}__${time}`;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  function renderLanding() {
+    const grid = document.getElementById('store-grid');
+    grid.innerHTML = '';
+    STORES.forEach(store => {
+      const card = document.createElement('div');
+      card.className = 'store-card';
+      card.onclick = () => openStore(store);
+      card.innerHTML = `<h3>${store}</h3><p>View today's booking board</p>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function openStore(store) {
+    currentStore = store;
+    currentDate = todayStr();
+    document.getElementById('date-picker').value = currentDate;
+    document.getElementById('schedule-store-name').textContent = store;
+    document.getElementById('view-landing').classList.add('hidden');
+    document.getElementById('view-schedule').classList.remove('hidden');
+    refreshAndRender();
+  }
+
+  function goLanding() {
+    document.getElementById('view-schedule').classList.add('hidden');
+    document.getElementById('view-landing').classList.remove('hidden');
+    currentStore = null;
+  }
+
+  function renderSchedule() {
+    const bookings = loadBookings(currentStore, currentDate);
+    const body = document.getElementById('schedule-body');
+    body.innerHTML = '';
+
+    SCHEDULE_ROWS.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      ['A', 'B', 'C'].forEach(studio => {
+        const time = row[studio];
+        const id = slotId(studio, time);
+        const booking = bookings[id];
+        const td = document.createElement('td');
+        td.className = 'slot ' + (booking ? 'slot-booked' : 'slot-open');
+
+        if (booking) {
+          td.innerHTML = `
+            <div class="slot-inner">
+              <span class="slot-time">${time}</span>
+              <span class="droptag">Booked</span>
+              <span class="res-name">${escapeHtml(booking.name)}</span>
+              <span class="res-meta">${booking.contestants} contestant${booking.contestants == 1 ? '' : 's'}</span>
+              <button class="cancel-link" onclick="cancelBooking('${studio}','${time}')">Cancel booking</button>
+            </div>`;
+        } else {
+          td.innerHTML = `
+            <div class="slot-inner">
+              <span class="slot-time">${time}</span>
+              <button class="book-btn" onclick="openModal('${studio}','${time}')">Book</button>
+            </div>`;
+        }
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function openModal(studio, time) {
+    pendingSlot = { studio, time };
+    document.getElementById('modal-studio-label').textContent = `Studio ${studio}`;
+    document.getElementById('modal-title').textContent = `Book ${time} slot`;
+    document.getElementById('res-name').value = '';
+    document.getElementById('res-contestants').value = '';
+    document.getElementById('modal-error').style.display = 'none';
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+    pendingSlot = null;
+  }
+
+  async function confirmBooking() {
+    const name = document.getElementById('res-name').value.trim();
+    const contestants = parseInt(document.getElementById('res-contestants').value, 10);
+    const errorEl = document.getElementById('modal-error');
+
+    if (!name || !contestants || contestants < 1) {
+      errorEl.textContent = 'Please enter a reservation name and a valid number of contestants.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const studio = pendingSlot.studio;
+    const time = pendingSlot.time;
+    const bookings = loadBookings(currentStore, currentDate);
+    const id = slotId(studio, time);
+    bookings[id] = { name, contestants, bookedAt: new Date().toISOString() };
+    saveBookings(currentStore, currentDate, bookings);
+
+    closeModal();
+    renderSchedule();
+    showToast(`Booked ${time} in Studio ${studio}`);
+
+    await syncBooking('book', studio, time, { name, contestants });
+    refreshAndRender();
+  }
+
+  async function cancelBooking(studio, time) {
+    if (!confirm(`Cancel the booking for ${time} in Studio ${studio}?`)) return;
+    const bookings = loadBookings(currentStore, currentDate);
+    delete bookings[slotId(studio, time)];
+    saveBookings(currentStore, currentDate, bookings);
+    renderSchedule();
+
+    await syncBooking('cancel', studio, time, {});
+    refreshAndRender();
+  }
+
+  document.getElementById('date-picker').addEventListener('change', (e) => {
+    currentDate = e.target.value;
+    refreshAndRender();
+  });
+
+  document.getElementById('overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'overlay') closeModal();
+  });
+
+  document.getElementById('sync-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'sync-overlay') closeSyncModal();
+  });
+
+  function updateSyncStatus() {
+    const el = document.getElementById('sync-status');
+    if (!el) return;
+    el.textContent = getApiUrl() ? 'Sync: on (writes to Google Sheet)' : 'Sync: off (saved on this device only)';
+  }
+
+  renderLanding();
+  updateSyncStatus();
+</script>
+
+</body>
+</html>
