@@ -414,7 +414,7 @@
     <h2>Enter admin password</h2>
     <div class="field">
       <label for="admin-password-input">Password</label>
-      <input type="password" id="admin-password-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkAdminPassword(Password2)">
+      <input type="password" id="admin-password-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkAdminPassword()">
     </div>
     <p class="error-msg" id="admin-error">Incorrect password.</p>
     <div class="modal-actions">
@@ -468,7 +468,7 @@
   // Soft gate only — this is a static page, so anyone with dev tools open
   // can see this value. It keeps casual team members from poking at sync
   // settings; it is not real security. Change this to whatever you like.
-  const ADMIN_PASSWORD = 'gbgs-admin-2026';
+  const ADMIN_PASSWORD = 'Password2';
 
   const STORES = ["West Valley", "Richmond", "Dania Beach"];
 
